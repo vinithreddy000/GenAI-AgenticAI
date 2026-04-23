@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azure Data Engineering AI Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔷 Azure Data Engineering AI Assistant</h1>
+            <p class="subtitle">Elite Azure Data Platform Expert | 30+ Years Experience</p>
+        </div>
+        
+        <div class="chat-container" id="chatContainer">
+            <div class="welcome-message">
+                <h2>👋 Welcome!</h2>
+                <p>I'm your Azure Data Engineering specialist. Ask me about:</p>
+                <ul>
+                    <li>Azure Data Factory & Synapse Analytics</li>
+                    <li>Azure Databricks & Data Lake Storage</li>
+                    <li>SQL Server, Azure SQL, & Microsoft Fabric</li>
+                    <li>ETL/ELT Architecture & Performance Optimization</li>
+                    <li>Data Governance, Security & Cost Optimization</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <div class="input-wrapper">
+                <textarea 
+                    id="userInput" 
+                    placeholder="Ask about Azure Data Engineering..." 
+                    rows="1"
+                ></textarea>
+                <button id="sendBtn" class="send-btn">Send</button>
+            </div>
+            <div class="actions">
+                <button id="clearBtn" class="clear-btn">Clear Chat</button>
+                <span class="info">Press Enter to send, Shift+Enter for new line</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chatContainer');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const clearBtn = document.getElementById('clearBtn');
+
+        // Auto-resize textarea
+        userInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+        });
+
+        // Send message on Enter (Shift+Enter for new line)
+        userInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        sendBtn.addEventListener('click', sendMessage);
+        clearBtn.addEventListener('click', clearChat);
+
+        function addMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'assistant-message'}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar';
+            avatar.textContent = isUser ? '👤' : '🤖';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = content;
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(contentDiv);
+            chatContainer.appendChild(messageDiv);
+            
+            // Remove welcome message on first interaction
+            const welcomeMsg = document.querySelector('.welcome-message');
+            if (welcomeMsg) welcomeMsg.remove();
+            
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return contentDiv;
+        }
+
+        function formatContent(text) {
+            // Basic markdown-like formatting
+            text = text.replace(/\n/g, '<br>');
+            text = text.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+            text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+            text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+            text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+            return text;
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addMessage(formatContent(message), true);
+            userInput.value = '';
+            userInput.style.height = 'auto';
+
+            // Disable input while processing
+            userInput.disabled = true;
+            sendBtn.disabled = true;
+
+            // Create assistant message container
+            const assistantContent = addMessage('', false);
+            let fullResponse = '';
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = JSON.parse(line.substring(6));
+                            
+                            if (data.error) {
+                                assistantContent.innerHTML = `<span class="error">Error: ${data.error}</span>`;
+                                break;
+                            }
+                            
+                            if (data.content) {
+                                fullResponse += data.content;
+                                assistantContent.innerHTML = formatContent(fullResponse);
+                                chatContainer.scrollTop = chatContainer.scrollHeight;
+                            }
+                            
+                            if (data.done) {
+                                break;
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                assistantContent.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+            } finally {
+                // Re-enable input
+                userInput.disabled = false;
+                sendBtn.disabled = false;
+                userInput.focus();
+            }
+        }
+
+        async function clearChat() {
+            if (!confirm('Clear conversation history?')) return;
+
+            try {
+                await fetch('/clear', { method: 'POST' });
+                chatContainer.innerHTML = `
+                    <div class="welcome-message">
+                        <h2>👋 Welcome Back!</h2>
+                        <p>Conversation cleared. Ready for a fresh start!</p>
+                    </div>
+                `;
+            } catch (error) {
+                alert('Failed to clear chat: ' + error.message);
+            }
+        }
+
+        // Focus input on load
+        window.addEventListener('load', () => userInput.focus());
+    </script>
+</body>
+</html>
