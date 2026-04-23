@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 
 # Add user folder to Python path to import config
-sys.path.insert(0, '/Users/vinith.singareddy@gmail.com')
+sys.path.insert(0, '/Workspace/Users/vinith.singareddy@gmail.com')
 
 # Import API key from config file (stored outside git repo)
 from groq_config import GROQ_API_KEY

@@ -8,7 +8,7 @@ This repository uses an **external configuration file** to store API keys secure
 
 ### Configuration File Location
 ```
-/Users/vinith.singareddy@gmail.com/groq_config.py
+/Workspace/Users/vinith.singareddy@gmail.com/groq_config.py
 ```
 
 **This file is NOT in the git repository!**
@@ -27,7 +27,7 @@ All notebooks import the API key from this external config file:
 
 ```python
 import sys
-sys.path.insert(0, '/Users/vinith.singareddy@gmail.com')
+sys.path.insert(0, '/Workspace/Users/vinith.singareddy@gmail.com')
 from groq_config import GROQ_API_KEY
 
 # Use the API key
@@ -57,9 +57,9 @@ The following notebooks now import from the external config:
 
 ### For New Users Cloning This Repo:
 
-1. **Create the config file** in your user directory:
+1. **Create the config file** in your Databricks workspace directory:
    ```bash
-   nano /Users/<your-username>/groq_config.py
+   nano /Workspace/Users/<your-username>/groq_config.py
    ```
 
 2. **Add your API key**:
@@ -72,7 +72,7 @@ The following notebooks now import from the external config:
 
 4. **Update notebook imports** if your username is different:
    ```python
-   sys.path.insert(0, '/Users/YOUR_USERNAME')
+   sys.path.insert(0, '/Workspace/Users/YOUR_USERNAME')
    ```
 
 5. **Run the notebooks** - they'll automatically use your API key!
@@ -99,7 +99,7 @@ The following notebooks now import from the external config:
 
 1. Open the config file:
    ```bash
-   nano /Users/vinith.singareddy@gmail.com/groq_config.py
+   nano /Workspace/Users/vinith.singareddy@gmail.com/groq_config.py
    ```
 
 2. Update the key:
@@ -116,8 +116,9 @@ The following notebooks now import from the external config:
 ### Error: `ModuleNotFoundError: No module named 'groq_config'`
 
 **Solution:**
-* Make sure the config file exists at `/Users/vinith.singareddy@gmail.com/groq_config.py`
+* Make sure the config file exists at `/Workspace/Users/vinith.singareddy@gmail.com/groq_config.py`
 * Check the `sys.path.insert()` line has the correct path
+* Verify you're using `/Workspace/Users/` not `/Users/` (Databricks workspace path)
 
 ### Error: `AttributeError: module 'groq_config' has no attribute 'GROQ_API_KEY'`
 
