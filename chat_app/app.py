@@ -7,8 +7,9 @@ import sys
 app = Flask(__name__)
 
 
-# Add user folder to Python path to import config
-sys.path.insert(0, '/Workspace/Users/vinith.singareddy@gmail.com')
+# Add parent folder (one level above GenAI-AgenticAI) to Python path to import config
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, parent_dir)
 
 # Import API key from config file (stored outside git repo)
 from groq_config import GROQ_API_KEY
